@@ -2,6 +2,7 @@ import os
 import re
 import time
 import json
+import pytz
 import gspread
 import pandas as pd
 from datetime import datetime
@@ -12,7 +13,10 @@ CHANNEL_ID = os.environ["CHANNEL_ID"]
 GOOGLE_CREDENTIALS_JSON = os.environ["GOOGLE_CREDENTIALS"]
 SHEET_NAME = os.environ["SHEET_NAME"]
 
-start_date = datetime(2026, 8, 31).timestamp()
+# تحديد توقيت مصر
+egypt_tz = pytz.timezone('Africa/Cairo')
+
+start_date = datetime(2026, 8, 1).timestamp()
 client = WebClient(token=SLACK_TOKEN)
 
 target_keywords = ["match id:", "category:", "details:"]
@@ -74,8 +78,9 @@ while has_more:
         lower_text = clean_text.lower()
 
         if all(k in lower_text for k in target_keywords):
+            # تحويل التوقيت لمصر
             msg_ts = msg.get("ts")
-            formatted_time = datetime.fromtimestamp(float(msg_ts)).strftime("%Y-%m-%d %H:%M:%S") if msg_ts else "غير متوفر"
+            formatted_time = datetime.fromtimestamp(float(msg_ts), egypt_tz).strftime("%Y-%m-%d %H:%M:%S") if msg_ts else "غير متوفر"
 
             match_id = re.search(r"Match ID:\s*(\d+)", clean_text, re.IGNORECASE)
             arqam_id = re.search(r"ArqamId\s*:\s*([^\n]+)", clean_text, re.IGNORECASE)
@@ -114,7 +119,8 @@ while has_more:
                         last_msg = replies_list[-1]
                         last_comment = resolve_slack_text(last_msg.get("text", ""))
                         if last_msg.get("ts"):
-                            last_comment_time = datetime.fromtimestamp(float(last_msg.get("ts"))).strftime("%Y-%m-%d %H:%M:%S")
+                            # تحويل التوقيت لمصر في التعليقات
+                            last_comment_time = datetime.fromtimestamp(float(last_msg.get("ts")), egypt_tz).strftime("%Y-%m-%d %H:%M:%S")
                 except: pass
             
             data.append({
