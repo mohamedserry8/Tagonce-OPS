@@ -1,0 +1,29 @@
+name: Hourly Slack to Sheets Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *' # يعمل عند الدقيقة 0 من كل ساعة أوتوماتيكياً
+  workflow_dispatch: # يضيف زر يسمح لك بتشغيله يدوياً
+
+jobs:
+  run-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Libraries
+        run: pip install slack_sdk pandas gspread
+
+      - name: Run Script
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          SHEET_NAME: ${{ secrets.SHEET_NAME }}
+        run: python main.py
