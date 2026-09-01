@@ -12,7 +12,7 @@ CHANNEL_ID = os.environ["CHANNEL_ID"]
 GOOGLE_CREDENTIALS_JSON = os.environ["GOOGLE_CREDENTIALS"]
 SHEET_NAME = os.environ["SHEET_NAME"]
 
-start_date = datetime(2026, 8, 30).timestamp()
+start_date = datetime(2026, 8, 31).timestamp()
 client = WebClient(token=SLACK_TOKEN)
 
 target_keywords = ["match id:", "category:", "details:"]
