@@ -2,8 +2,8 @@ name: Hourly Slack to Sheets Sync
 
 on:
   schedule:
-    - cron: '0 * * * *' # يعمل عند الدقيقة 0 من كل ساعة أوتوماتيكياً
-  workflow_dispatch: # يضيف زر يسمح لك بتشغيله يدوياً
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
 
 jobs:
   run-sync:
