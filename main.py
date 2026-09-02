@@ -16,7 +16,7 @@ SHEET_NAME = os.environ["SHEET_NAME"]
 egypt_tz = pytz.timezone('Africa/Cairo')
 
 # تعديل التاريخ ليبدأ من 1 سبتمبر 2026 فقط لتقليل وقت التحميل
-start_date = datetime(2026, 7, 1).timestamp()
+start_date = datetime(2026, 9, 1).timestamp()
 client = WebClient(token=SLACK_TOKEN)
 
 target_keywords = ["match id:", "category:", "details:"]
@@ -149,7 +149,7 @@ if data:
     sh = gc.open(SHEET_NAME)
     
     # استهداف التاب الثابتة بالاسم
-    worksheet = sh.worksheet("Tagonce All Requests")
+    worksheet = sh.worksheet("Tagonce Main Sheet")
     
     # محاولة قراءة الداتا القديمة للحفاظ عليها
     try:
