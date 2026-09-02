@@ -13,10 +13,10 @@ CHANNEL_ID = os.environ["CHANNEL_ID"]
 GOOGLE_CREDENTIALS_JSON = os.environ["GOOGLE_CREDENTIALS"]
 SHEET_NAME = os.environ["SHEET_NAME"]
 
-# تحديد توقيت مصر
 egypt_tz = pytz.timezone('Africa/Cairo')
 
-start_date = datetime(2026, 8, 1).timestamp()
+# تعديل التاريخ ليبدأ من 1 سبتمبر 2026 فقط لتقليل وقت التحميل
+start_date = datetime(2026, 9, 1).timestamp()
 client = WebClient(token=SLACK_TOKEN)
 
 target_keywords = ["match id:", "category:", "details:"]
@@ -78,7 +78,6 @@ while has_more:
         lower_text = clean_text.lower()
 
         if all(k in lower_text for k in target_keywords):
-            # تحويل التوقيت لمصر
             msg_ts = msg.get("ts")
             formatted_time = datetime.fromtimestamp(float(msg_ts), egypt_tz).strftime("%Y-%m-%d %H:%M:%S") if msg_ts else "غير متوفر"
 
@@ -119,7 +118,6 @@ while has_more:
                         last_msg = replies_list[-1]
                         last_comment = resolve_slack_text(last_msg.get("text", ""))
                         if last_msg.get("ts"):
-                            # تحويل التوقيت لمصر في التعليقات
                             last_comment_time = datetime.fromtimestamp(float(last_msg.get("ts")), egypt_tz).strftime("%Y-%m-%d %H:%M:%S")
                 except: pass
             
@@ -144,17 +142,33 @@ while has_more:
 
 if data:
     print("جاري تحديث جوجل شيت...")
-    df = pd.DataFrame(data)
+    df_new = pd.DataFrame(data)
     
     credentials_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
     gc = gspread.service_account_from_dict(credentials_dict)
     sh = gc.open(SHEET_NAME)
     
-    # تحديد التاب بالاسم بدلاً من الترتيب
+    # استهداف التاب الثابتة بالاسم
     worksheet = sh.worksheet("Tagonce Main Sheet")
     
+    # محاولة قراءة الداتا القديمة للحفاظ عليها
+    try:
+        existing_data = worksheet.get_all_records()
+        df_existing = pd.DataFrame(existing_data)
+    except Exception:
+        df_existing = pd.DataFrame()
+        
+    if not df_existing.empty:
+        # دمج البيانات القديمة والجديدة
+        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+        # إزالة التكرار بناءً على تاريخ الرسالة الأصلية والاحتفاظ بآخر نسخة (الجديدة التي تحتوي على التعليقات المحدثة)
+        df_combined.drop_duplicates(subset=['Date & Time'], keep='last', inplace=True)
+    else:
+        df_combined = df_new
+
+    # مسح الشيت وكتابة البيانات المدمجة
     worksheet.clear()
-    worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+    worksheet.update([df_combined.columns.values.tolist()] + df_combined.values.tolist())
     print("تم تحديث جوجل شيت بنجاح!")
 else:
     print("لم يتم العثور على بيانات جديدة.")
