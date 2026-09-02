@@ -149,7 +149,9 @@ if data:
     credentials_dict = json.loads(GOOGLE_CREDENTIALS_JSON)
     gc = gspread.service_account_from_dict(credentials_dict)
     sh = gc.open(SHEET_NAME)
-    worksheet = sh.sheet1
+    
+    # تحديد التاب بالاسم بدلاً من الترتيب
+    worksheet = sh.worksheet("Tagonce Main Sheet")
     
     worksheet.clear()
     worksheet.update([df.columns.values.tolist()] + df.values.tolist())
